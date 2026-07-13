@@ -52,9 +52,17 @@ def automatizar_uam():
                 break
 
     if encontrado:
-        mensaje = "Se detectó la convocatoria con 'Disciplina: Derecho'. Revisa el archivo."
-        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={mensaje}"
-        requests.get(url)
+        # Enviamos el archivo PDF a Telegram
+        url_telegram = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
+        
+        with open(archivo_final, 'rb') as archivo_pdf:
+            files = {'document': archivo_pdf}
+            data = {
+                'chat_id': CHAT_ID,
+                'caption': "¡Convocatoria con 'Disciplina: Derecho' encontrada! Aquí tienes el archivo."
+            }
+            requests.post(url_telegram, data=data, files=files)
+        print("Notificación y archivo enviados a Telegram.")
     else:
         print("Disciplina no encontrada.")
 
