@@ -1,7 +1,7 @@
 name: UAM Bot Scheduler
 on:
   schedule:
-    - cron: '0 9 * * *' 
+    - cron: '0 16 * * *' 
   workflow_dispatch: 
 
 jobs:
