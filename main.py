@@ -17,37 +17,39 @@ def automatizar_uam():
     # 1. NAVEGACIÓN Y DESCARGA
     print("Iniciando navegación...")
     with sync_playwright() as p:
+        # Lanzamos navegador con configuración de usuario para evitar bloqueos
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
         page = context.new_page()
         page.set_default_timeout(60000)
         
+        # Navegación directa
         page.goto("https://www.uam.mx/")
         page.click("text=PROFESORADO")
         page.click("text=CONVOCATORIAS Y DICTÁMENES")
         
-        # Extraemos el enlace directamente sin intentar navegar a la página nueva
+        # Extraemos el atributo href directamente del selector
         selector = "a:has-text('CONVOCATORIAS Y DICTÁMENES PARA EL INGRESO DEL PERSONAL ACADÉMICO')"
         pdf_url = page.locator(selector).first.get_attribute("href")
         
-        # Aseguramos que la URL sea absoluta
+        # Normalizamos la URL por si es relativa
         if pdf_url.startswith("/"):
             pdf_url = "https://www.uam.mx" + pdf_url
             
         print(f"URL del PDF detectada: {pdf_url}")
         
-        # Renombrado basado en URL
+        # Renombrado basado en patrón de fecha en la URL
         match = re.search(r'(\d{2}[a-z]{3}\d{2})', pdf_url)
         nombre_archivo = f"{match.group(1)}.pdf" if match else "convocatoria_default.pdf"
         
         archivo_final = os.path.join(RUTA_DESCARGAS, nombre_archivo)
         
-        # Descarga directa con requests
+        # Descarga directa mediante requests (más estable que Playwright para archivos)
         response = requests.get(pdf_url, headers={"User-Agent": "Mozilla/5.0"})
         with open(archivo_final, "wb") as f:
             f.write(response.content)
         browser.close()
-        print(f"Archivo descargado: {nombre_archivo}")
+        print(f"Archivo descargado exitosamente: {nombre_archivo}")
 
     # 2. BÚSQUEDA Y NOTIFICACIÓN
     print("Analizando contenido...")
@@ -60,7 +62,7 @@ def automatizar_uam():
                 break
 
     if encontrado:
-        mensaje = f"Ha salido una Convocatoria en la UAM que te puede interesar. Revisa la Convocatoria: {nombre_archivo}. Éxito"
+        mensaje = f"Ha salido una Convocatoria en la UAM que te puede interesar. Revisa: {nombre_archivo}."
         url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={mensaje}"
         requests.get(url)
         print("Notificación enviada a Telegram.")
