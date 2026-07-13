@@ -51,7 +51,7 @@ def automatizar_uam():
                 encontrado = True
                 break
 
-    if True:
+    if encontrado:
         mensaje = "Se detectó la convocatoria con 'Disciplina: Derecho'. Revisa el archivo."
         url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={mensaje}"
         requests.get(url)
