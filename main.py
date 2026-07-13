@@ -17,31 +17,33 @@ def automatizar_uam():
     # 1. NAVEGACIÓN Y DESCARGA
     print("Iniciando navegación...")
     with sync_playwright() as p:
-        # Configuración con user_agent para parecer un navegador real
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
         page = context.new_page()
-        
-        # Aumentamos el timeout a 60 segundos por seguridad
         page.set_default_timeout(60000)
         
-        page.goto("https://www.uam.mx/", wait_until="domcontentloaded")
+        page.goto("https://www.uam.mx/")
         page.click("text=PROFESORADO")
         page.click("text=CONVOCATORIAS Y DICTÁMENES")
         
-        with context.expect_page(timeout=60000) as new_page_info:
-            page.locator("a:has-text('CONVOCATORIAS Y DICTÁMENES PARA EL INGRESO DEL PERSONAL ACADÉMICO')").first.click()
+        # Extraemos el enlace directamente sin intentar navegar a la página nueva
+        selector = "a:has-text('CONVOCATORIAS Y DICTÁMENES PARA EL INGRESO DEL PERSONAL ACADÉMICO')"
+        pdf_url = page.locator(selector).first.get_attribute("href")
         
-        new_page = new_page_info.value
-        new_page.wait_for_load_state("domcontentloaded")
-        pdf_url = new_page.url
+        # Aseguramos que la URL sea absoluta
+        if pdf_url.startswith("/"):
+            pdf_url = "https://www.uam.mx" + pdf_url
+            
+        print(f"URL del PDF detectada: {pdf_url}")
         
         # Renombrado basado en URL
         match = re.search(r'(\d{2}[a-z]{3}\d{2})', pdf_url)
         nombre_archivo = f"{match.group(1)}.pdf" if match else "convocatoria_default.pdf"
         
         archivo_final = os.path.join(RUTA_DESCARGAS, nombre_archivo)
-        response = requests.get(pdf_url)
+        
+        # Descarga directa con requests
+        response = requests.get(pdf_url, headers={"User-Agent": "Mozilla/5.0"})
         with open(archivo_final, "wb") as f:
             f.write(response.content)
         browser.close()
