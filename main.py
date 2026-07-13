@@ -51,7 +51,7 @@ def automatizar_uam():
                 encontrado = True
                 break
 
-    if encontrado:
+    if True:
         # Enviamos el archivo PDF a Telegram
         url_telegram = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
         
