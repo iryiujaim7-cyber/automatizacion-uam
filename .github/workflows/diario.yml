@@ -1,0 +1,23 @@
+name: UAM Bot Scheduler
+on:
+  schedule:
+    - cron: '0 9 * * *' 
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with: {python-version: '3.13'}
+      - name: Install dependencies
+        run: pip install playwright requests pdfplumber
+      - name: Install Playwright Browsers
+        run: playwright install chromium
+      - name: Run script
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python main.py
