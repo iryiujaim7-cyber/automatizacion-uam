@@ -17,19 +17,23 @@ def automatizar_uam():
     # 1. NAVEGACIÓN Y DESCARGA
     print("Iniciando navegación...")
     with sync_playwright() as p:
+        # Configuración con user_agent para parecer un navegador real
         browser = p.chromium.launch(headless=True)
-        context = browser.new_context()
+        context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
         page = context.new_page()
         
-        page.goto("https://www.uam.mx/")
+        # Aumentamos el timeout a 60 segundos por seguridad
+        page.set_default_timeout(60000)
+        
+        page.goto("https://www.uam.mx/", wait_until="domcontentloaded")
         page.click("text=PROFESORADO")
         page.click("text=CONVOCATORIAS Y DICTÁMENES")
         
-        with context.expect_page() as new_page_info:
+        with context.expect_page(timeout=60000) as new_page_info:
             page.locator("a:has-text('CONVOCATORIAS Y DICTÁMENES PARA EL INGRESO DEL PERSONAL ACADÉMICO')").first.click()
         
         new_page = new_page_info.value
-        new_page.wait_for_load_state("load")
+        new_page.wait_for_load_state("domcontentloaded")
         pdf_url = new_page.url
         
         # Renombrado basado en URL
