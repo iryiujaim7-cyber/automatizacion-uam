@@ -24,7 +24,6 @@ def automatizar_uam():
         page.click("text=CONVOCATORIAS Y DICTÁMENES")
         
         selector = "a:has-text('CONVOCATORIAS Y DICTÁMENES PARA EL INGRESO DEL PERSONAL ACADÉMICO')"
-        # Obtenemos el link directamente
         pdf_url = page.locator(selector).first.get_attribute("href")
         
         if pdf_url.startswith("/"):
